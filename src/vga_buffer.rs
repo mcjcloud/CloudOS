@@ -188,7 +188,6 @@ pub fn _print(args: fmt::Arguments) {
 
 #[doc(hidden)]
 pub fn _clear_screen() {
-  use core::fmt::Write;
   WRITER.lock().clear_screen();
 }
 

@@ -31,8 +31,12 @@ fn panic(_info: &PanicInfo) -> ! {
 pub extern "C" fn _start() -> ! {
   println!("Hello World{}", "!");
 
+  cloudos::init();
+
   #[cfg(test)]
   test_main();
+
+  println!("Didn't crash!");
 
   // never return
   loop {}

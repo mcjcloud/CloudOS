@@ -1,17 +1,25 @@
 // The purpose of this file is to make certain functionality available to both integration tests and source code
 #![no_std]
 #![cfg_attr(test, no_main)]
-#![feature(custom_test_frameworks)]
-#![test_runner(crate::test_runner)]
+#![feature(custom_test_frameworks)] // enable custom test frameworks
+#![feature(abi_x86_interrupt)]      // enable "x86-interrupt" calling convention
+#![test_runner(crate::test_runner)] // use test_runner for tests
 #![reexport_test_harness_main = "test_main"]
 
 extern crate rlibc;
 
-// make serial and vga_buffer available to crate
+// make modules available to crate
+pub mod interrupts;
+pub mod gdt;
 pub mod serial;
 pub mod vga_buffer;
 
 use core::panic::PanicInfo;
+
+pub fn init() {
+  gdt::init();
+  interrupts::init_idt();
+}
 
 pub trait Testable {
   fn run(&self) -> ();
