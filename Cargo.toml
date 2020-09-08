@@ -7,5 +7,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rlibc = "1.0.0"
-bootloader = "0.9.8"
+rlibc = "1.0.0"       # required by linker
+bootloader = "0.9.8"  # used to create a bootable image
+volatile = "0.2.6"    # used to write to memory and indicate side effects
+spin = "0.5.2"        # thread-burning implementation of mutex lock
+
+[dependencies.lazy_static]
+version = "1.0"
+features = ["spin_no_std"]
