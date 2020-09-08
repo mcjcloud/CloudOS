@@ -7,6 +7,7 @@
 
 extern crate rlibc;
 
+// make serial and vga_buffer available to crate
 pub mod serial;
 pub mod vga_buffer;
 
@@ -16,6 +17,7 @@ pub trait Testable {
   fn run(&self) -> ();
 }
 
+// Testable trait adds a run function to all functions with Fn() trait
 impl<T> Testable for T
 where
   T: Fn(),
@@ -27,6 +29,9 @@ where
   }
 }
 
+/**
+ * test_runner runs all functions with the Testable trait
+ */
 pub fn test_runner(tests: &[&dyn Testable]) {
   serial_println!("Running {} tests", tests.len());
   for test in tests {
@@ -35,6 +40,9 @@ pub fn test_runner(tests: &[&dyn Testable]) {
   exit_qemu(QemuExitCode::Success);
 }
 
+/**
+ * test_panic_handler gracefully handles panics and exits QEMU
+ */
 pub fn test_panic_handler(info: &PanicInfo) -> ! {
   serial_println!("[failed]\n");
   serial_println!("Error: {}\n", info);
