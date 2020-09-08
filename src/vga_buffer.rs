@@ -150,7 +150,9 @@ impl fmt::Write for Writer {
 }
 
 // create a lazily initialized static writer
+// this is necessary because references to pointers cannot be determined at compile-time
 lazy_static! {
+  // the use of spin Mutex allows safe access to the writer without the concept of threads
   pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
     column_position: 0,
     color_code: ColorCode::new(Color::Yellow, Color::Black),
