@@ -173,8 +173,48 @@ macro_rules! println {
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
+#[macro_export]
+macro_rules! clear_screen {
+  () => {
+    $crate::vga_buffer::_clear_screen()
+  };
+}
+
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
-    use core::fmt::Write;
-    WRITER.lock().write_fmt(args).unwrap();
+  use core::fmt::Write;
+  WRITER.lock().write_fmt(args).unwrap();
+}
+
+#[doc(hidden)]
+pub fn _clear_screen() {
+  use core::fmt::Write;
+  WRITER.lock().clear_screen();
+}
+
+#[test_case]
+fn test_println_simple() {
+  println!("test println simple");
+}
+
+#[test_case]
+fn test_println_many() {
+  for _ in 0..200 {
+    println!("test println many output");
+  }
+}
+
+#[test_case]
+fn test_println_output() {
+  let s = "Some test string";
+  println!("{}", s);
+  for (i, c) in s.chars().enumerate() {
+    let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
+    assert_eq!(char::from(screen_char.ascii_character), c);
+  }
+}
+
+#[test_case]
+fn test_clear_screen() {
+  clear_screen!();
 }

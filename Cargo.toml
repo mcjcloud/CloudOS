@@ -11,7 +11,17 @@ rlibc = "1.0.0"       # required by linker
 bootloader = "0.9.8"  # used to create a bootable image
 volatile = "0.2.6"    # used to write to memory and indicate side effects
 spin = "0.5.2"        # thread-burning implementation of mutex lock
+x86_64 = "0.11.0"     # x86 instructions in Rust
+uart_16550 = "0.2.0"  # serial port, allowing us to write data to host OS
 
 [dependencies.lazy_static]
 version = "1.0"
 features = ["spin_no_std"]
+
+[package.metadata.bootimage]
+test-args = [
+  "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
+  "-serial", "stdio",
+  "-display", "none"
+]
+test-success-exit-code = 33 # (0x10 << 1) | 1
