@@ -7,12 +7,14 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rlibc = "1.0.0"       # required by linker
-bootloader = "0.9.8"  # used to create a bootable image
-volatile = "0.2.6"    # used to write to memory and indicate side effects
-spin = "0.5.2"        # thread-burning implementation of mutex lock
-x86_64 = "0.11.0"     # x86 instructions in Rust
-uart_16550 = "0.2.0"  # serial port, allowing us to write data to host OS
+rlibc = "1.0.0"           # required by linker
+bootloader = "0.9.8"      # used to create a bootable image
+volatile = "0.2.6"        # used to write to memory and indicate side effects
+spin = "0.5.2"            # thread-burning implementation of mutex lock
+x86_64 = "0.11.0"         # x86 instructions in Rust
+uart_16550 = "0.2.0"      # serial port, allowing us to write data to host OS
+pic8259_simple = "0.2.0"  # Programmable Interrupt Controller (PIC)
+pc-keyboard = "0.5.0"     # scancode to key mappings for PS/2 controller
 
 [dependencies.lazy_static]
 version = "1.0"

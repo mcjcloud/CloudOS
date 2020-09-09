@@ -2,15 +2,15 @@
 #![no_std]
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)] // enable custom test frameworks
-#![feature(abi_x86_interrupt)]      // enable "x86-interrupt" calling convention
+#![feature(abi_x86_interrupt)] // enable "x86-interrupt" calling convention
 #![test_runner(crate::test_runner)] // use test_runner for tests
 #![reexport_test_harness_main = "test_main"]
 
 extern crate rlibc;
 
 // make modules available to crate
-pub mod interrupts;
 pub mod gdt;
+pub mod interrupts;
 pub mod serial;
 pub mod vga_buffer;
 
@@ -19,6 +19,17 @@ use core::panic::PanicInfo;
 pub fn init() {
   gdt::init();
   interrupts::init_idt();
+  unsafe { interrupts::PICS.lock().initialize() }; // initialize the Interrupt Controller
+  x86_64::instructions::interrupts::enable(); // enable interrupts for the CPU
+}
+
+/**
+ * hlt_loop uses the hlt instruction to preserve CPU resources
+ */
+pub fn hlt_loop() -> ! {
+  loop {
+    x86_64::instructions::hlt();
+  }
 }
 
 pub trait Testable {
@@ -55,7 +66,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
   serial_println!("[failed]\n");
   serial_println!("Error: {}\n", info);
   exit_qemu(QemuExitCode::Failed);
-  loop {}
+  hlt_loop();
 }
 
 /// Entry point for `cargo test`
@@ -63,7 +74,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
   test_main();
-  loop {}
+  hlt_loop();
 }
 
 #[cfg(test)]

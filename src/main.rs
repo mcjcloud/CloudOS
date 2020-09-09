@@ -13,15 +13,15 @@ use core::panic::PanicInfo;
 // This function is called on panic. It is needed here because the std implementation is excluded
 #[cfg(not(test))] // don't use this panic handler in test mode
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-  println!("{}", _info);
-  loop {}
+fn panic(info: &PanicInfo) -> ! {
+  println!("{}", info);
+  cloudos::hlt_loop();
 }
 
 #[cfg(test)] // use this panic handler in test mode
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-  cloudos::test_panic_handler(_info);
+fn panic(info: &PanicInfo) -> ! {
+  cloudos::test_panic_handler(info);
 }
 
 // no_mangle prevents this function name from being changed by the compiler.
@@ -39,5 +39,5 @@ pub extern "C" fn _start() -> ! {
   println!("Didn't crash!");
 
   // never return
-  loop {}
+  cloudos::hlt_loop();
 }
