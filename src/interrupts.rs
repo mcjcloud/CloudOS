@@ -11,10 +11,11 @@
 use crate::gdt;
 use crate::print;
 use crate::println;
+use crate::hlt_loop;
 use lazy_static::lazy_static;
 use pic8259_simple::ChainedPics;
 use spin;
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
+use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
 
 pub const PIC_1_OFFSET: u8 = 32; // Interrupt Controller should start at port 32 (first free after 32 fault ports)
 pub const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8; // second controller goes after the first
@@ -51,6 +52,7 @@ lazy_static! {
 
     // fault interrupts
     idt.breakpoint.set_handler_fn(breakpoint_handler);
+    idt.page_fault.set_handler_fn(page_fault_handler);
     unsafe {
       idt
         .double_fault
@@ -76,6 +78,19 @@ pub fn init_idt() {
  */
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut InterruptStackFrame) {
   println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn page_fault_handler(
+  stack_frame: &mut InterruptStackFrame,
+  error_code: PageFaultErrorCode,
+) {
+  use x86_64::registers::control::Cr2;
+
+  println!("EXCEPTION: PAGE FAULT");
+  println!("Accessed Address: {:?}", Cr2::read());
+  println!("Error Code: {:?}", error_code);
+  println!("{:#?}", stack_frame);
+  hlt_loop();
 }
 
 /**

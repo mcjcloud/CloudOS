@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 rlibc = "1.0.0"           # required by linker
-bootloader = "0.9.8"      # used to create a bootable image
+bootloader = { version = "0.9.3", features = ["map_physical_memory"]}                         # used to create a bootable image
 volatile = "0.2.6"        # used to write to memory and indicate side effects
 spin = "0.5.2"            # thread-burning implementation of mutex lock
 x86_64 = "0.11.0"         # x86 instructions in Rust
