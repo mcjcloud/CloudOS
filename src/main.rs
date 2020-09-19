@@ -5,9 +5,12 @@
 #![reexport_test_harness_main = "test_main"] // export the test runner function with test_main name
 
 // This library is important to the linker but normally comes from libc
+extern crate alloc;
 extern crate rlibc;
 
+use alloc::{boxed::Box, vec, vec::Vec, rc::Rc};
 use bootloader::{entry_point, BootInfo};
+use cloudos::allocator;
 use cloudos::println;
 use core::panic::PanicInfo;
 
@@ -32,7 +35,7 @@ entry_point!(kernel_main);
 // this is because of the "map_physical_memory" feature in Cargo.toml
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
   use cloudos::memory;
-  use x86_64::{structures::paging::Page, VirtAddr};
+  use x86_64::VirtAddr;
 
   println!("Hello World{}", "!");
 
@@ -43,26 +46,25 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
   let mut mapper = unsafe { memory::init(phys_mem_offset) };
   let mut frame_allocator = unsafe { memory::BootInfoFrameAllocator::init(&boot_info.memory_map) };
 
-  // map an unused page
-  let page = Page::containing_address(VirtAddr::new(0x0)); // use virt address 0 because we know it is unmapped and requires no new page tables
-  // memory::create_example_mapping(page, &mut mapper, &mut frame_allocator); // removed
+  allocator::init_heap(&mut mapper, &mut frame_allocator).expect("heap init failed");
 
-  // write 'New!' to the screen using the newly mapped page
-  let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
-  unsafe { page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e) };
+  // allocate a number on the heap
+  let heap_value = Box::new(41);
+  println!("heap_value at {:p}", heap_value);
 
-  // let addresses = [
-  //   0xb8000,                          // vga buffer
-  //   0x201008,                         // some code page
-  //   0x0100_00200_1a10,                // some stack page
-  //   boot_info.physical_memory_offset, // virt address mapped to physical addres 0x0
-  // ];
+  // create dynamically sized vector
+  let mut vec = Vec::new();
+  for i in 0..500 {
+    vec.push(i);
+  }
+  println!("vec at {:p}", vec.as_slice());
 
-  // for &address in &addresses {
-  //   let virt = VirtAddr::new(address);
-  //   let phys = mapper.translate_addr(virt);
-  //   println!("{:?} -> {:?}", virt, phys);
-  // }
+  // create ref counted vecotr -> will be freed when count reaches 0
+  let reference_counted = Rc::new(vec![1, 2, 3]);
+  let cloned_reference = reference_counted.clone();
+  println!("current reference count is {}", Rc::strong_count(&cloned_reference));
+  core::mem::drop(reference_counted);
+  println!("reference count is {} now", Rc::strong_count(&cloned_reference));
 
   #[cfg(test)]
   test_main();

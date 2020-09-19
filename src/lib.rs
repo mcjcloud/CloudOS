@@ -3,12 +3,15 @@
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)] // enable custom test frameworks
 #![feature(abi_x86_interrupt)] // enable "x86-interrupt" calling convention
+#![feature(alloc_error_handler)] // enable alloc errors to be handled
 #![test_runner(crate::test_runner)] // use test_runner for tests
 #![reexport_test_harness_main = "test_main"]
 
+extern crate alloc;
 extern crate rlibc;
 
 // make modules available to crate
+pub mod allocator;
 pub mod gdt;
 pub mod interrupts;
 pub mod memory;
@@ -27,6 +30,11 @@ pub fn init() {
   interrupts::init_idt();
   unsafe { interrupts::PICS.lock().initialize() }; // initialize the Interrupt Controller
   x86_64::instructions::interrupts::enable(); // enable interrupts for the CPU
+}
+
+#[alloc_error_handler]
+fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
+  panic!("allocation error: {:?}", layout)
 }
 
 /**
